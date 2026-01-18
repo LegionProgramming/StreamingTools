@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Square → PRISM Alerts Setup</title>
+  <style>
+    :root{
+      --bg:#0b0f19;
+      --card:#121a2a;
+      --card2:#0f1626;
+      --text:#e7ecff;
+      --muted:#a7b1d6;
+      --accent:#8ad4ff;
+      --good:#7CFFB2;
+      --warn:#ffd37a;
+      --bad:#ff7c9b;
+      --border: rgba(255,255,255,.10);
+      --radius: 18px;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 600px at 20% 10%, rgba(138,212,255,.12), transparent 60%),
+                 radial-gradient(900px 500px at 80% 0%, rgba(124,255,178,.10), transparent 55%),
+                 var(--bg);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      padding: 24px;
+    }
+    .wrap{max-width: 980px; margin: 0 auto;}
+    .top{
+      display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      margin-bottom: 18px;
+    }
+    h1{font-size: 22px; margin:0}
+    .pill{
+      font-size: 12px; color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 6px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.03);
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px){
+      .grid{grid-template-columns: 1fr;}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .card h2{margin:0 0 12px 0; font-size: 16px;}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap: 12px;}
+    @media (max-width: 700px){
+      .row{grid-template-columns: 1fr;}
+    }
+    label{display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px;}
+    input, textarea, select{
+      width:100%;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      outline: none;
+      font-size: 14px;
+    }
+    textarea{min-height: 92px; resize: vertical;}
+    .hint{color: var(--muted); font-size: 12px; margin-top: 8px; line-height: 1.45;}
+    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;}
+    button{
+      border: 1px solid var(--border);
+      background: rgba(138,212,255,.10);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 650;
+    }
+    button.secondary{background: rgba(255,255,255,.06);}
+    button.danger{background: rgba(255,124,155,.12);}
+    button:disabled{opacity:.5; cursor:not-allowed;}
+    .ok{color: var(--good); font-size: 12px;}
+    .warn{color: var(--warn); font-size: 12px;}
+    .bad{color: var(--bad); font-size: 12px;}
+    .mono{font-family: var(--mono);}
+    .out{
+      background: rgba(0,0,0,.35);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      overflow-wrap:anywhere;
+    }
+    .small{font-size: 12px; color: var(--muted);}
+    .kv{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+    .kv > div{flex:1; min-width: 260px;}
+    .hr{height:1px; background: var(--border); margin: 14px 0;}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px; border-radius: 999px;
+      border:1px solid var(--border); background: rgba(0,0,0,.2);
+      font-size: 12px; color: var(--muted);
+    }
+    .dot{width:8px; height:8px; border-radius:999px; background: rgba(255,255,255,.25);}
+    .dot.on{background: var(--good);}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Square → PRISM Alerts Setup</h1>
+        <div class="small">Configure your overlay once per device/browser. Settings are stored locally.</div>
+      </div>
+      <div class="pill">LocalStorage-based • No PayPal • Mobile-friendly</div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: Setup -->
+      <div class="card">
+        <h2>1) Connection Settings</h2>
+
+        <div class="row">
+          <div>
+            <label for="apiBase">Worker API Base URL</label>
+            <input id="apiBase" class="mono" placeholder="https://YOURWORKER.workers.dev" />
+            <div class="hint">This is your Cloudflare Worker domain (no trailing slash). The overlay polls <span class="mono">/latest</span>.</div>
+          </div>
+          <div>
+            <label for="adminKey">Admin Key (optional)</label>
+            <input id="adminKey" class="mono" placeholder="For /test endpoint (optional)" />
+            <div class="hint">Only needed if you want the “Send Test Alert” button to work from this page.</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>2) Display Settings</h2>
+        <div class="row">
+          <div>
+            <label for="pollMs">Poll interval (ms)</label>
+            <input id="pollMs" type="number" min="250" step="250" value="1000" />
+            <div class="hint">How often the overlay checks for new alerts. 1000ms is a good default.</div>
+          </div>
+          <div>
+            <label for="showMs">Alert duration (ms)</label>
+            <input id="showMs" type="number" min="1000" step="500" value="6500" />
+            <div class="hint">How long the alert stays visible once it appears.</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <div>
+            <label for="framePath">Frame image path</label>
+            <input id="framePath" class="mono" value="assets/alert-frame.png" />
+            <div class="hint">Relative path inside your GitHub Pages repo.</div>
+          </div>
+          <div>
+            <label for="titleText">Title prefix</label>
+            <input id="titleText" value="⚖️ Balance Disturbed" />
+            <div class="hint">Optional title line displayed above the effect line.</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>3) Effect Labels (optional)</h2>
+        <label for="effectMap">Amount → Effect label map (JSON)</label>
+        <textarea id="effectMap" class="mono" placeholder='{"2":"Combat Pressure (15:00)","4":"Seal Skills (2:00)","7":"Forced Adaptation"}'></textarea>
+        <div class="hint">
+          This lets the overlay display your preferred text if the Worker only sends <span class="mono">amount</span>.
+          If your Worker already sends <span class="mono">effect</span>, you can leave this blank.
+        </div>
+
+        <div class="actions">
+          <button id="saveBtn">Save Settings</button>
+          <button id="clearBtn" class="danger">Clear Saved Settings</button>
+          <button id="openOverlayBtn" class="secondary">Open Overlay Page</button>
+        </div>
+
+        <div id="status" class="hint"></div>
+        <div class="hint bad" style="margin-top:10px;">
+          Heads up: if you clear site data / browser cache for this site, you’ll need to redo setup.
+        </div>
+      </div>
+
+      <!-- RIGHT: Outputs -->
+      <div class="card">
+        <h2>Overlay Output</h2>
+
+        <div class="badge"><span id="connDot" class="dot"></span> <span id="connText">Not configured</span></div>
+
+        <div class="hr"></div>
+
+        <div class="kv">
+          <div>
+            <label>Overlay URL (paste into PRISM Web widget)</label>
+            <div id="overlayUrl" class="out mono">—</div>
+            <div class="hint">This points to <span class="mono">alerts.html</span> and includes your settings.</div>
+          </div>
+          <div>
+            <label>API Health Check</label>
+            <div id="health" class="out mono">—</div>
+            <div class="hint">We’ll ping <span class="mono">/latest</span>. If it returns JSON, you’re good.</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>Test Tools</h2>
+        <div class="row">
+          <div>
+            <label for="tAmount">Test amount</label>
+            <input id="tAmount" type="number" min="0" step="1" value="4" />
+          </div>
+          <div>
+            <label for="tEffect">Test effect</label>
+            <input id="tEffect" value="Seal Mystic Skills (2:00)" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <div>
+            <label for="tNote">Test note (optional)</label>
+            <input id="tNote" value="TEST ALERT" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="testBtn">Send Test Alert</button>
+          </div>
+        </div>
+
+        <div class="hint">
+          The test button calls: <span class="mono">POST /test?k=ADMIN_KEY</span> on your Worker.
+          If ADMIN_KEY is blank or wrong, the test will fail (by design).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const KEY = "tcn_square_alerts_cfg_v1";
+
+    const apiBaseEl   = document.getElementById("apiBase");
+    const adminKeyEl  = document.getElementById("adminKey");
+    const pollMsEl    = document.getElementById("pollMs");
+    const showMsEl    = document.getElementById("showMs");
+    const framePathEl = document.getElementById("framePath");
+    const titleTextEl = document.getElementById("titleText");
+    const effectMapEl = document.getElementById("effectMap");
+
+    const overlayUrlEl = document.getElementById("overlayUrl");
+    const healthEl     = document.getElementById("health");
+    const statusEl     = document.getElementById("status");
+    const connDot      = document.getElementById("connDot");
+    const connText     = document.getElementById("connText");
+
+    const saveBtn = document.getElementById("saveBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const openOverlayBtn = document.getElementById("openOverlayBtn");
+    const testBtn = document.getElementById("testBtn");
+
+    const tAmountEl = document.getElementById("tAmount");
+    const tEffectEl = document.getElementById("tEffect");
+    const tNoteEl   = document.getElementById("tNote");
+
+    function loadCfg() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    }
+
+    function saveCfg(cfg) {
+      localStorage.setItem(KEY, JSON.stringify(cfg));
+    }
+
+    function clearCfg() {
+      localStorage.removeItem(KEY);
+    }
+
+    function sanitizeBase(u) {
+      return (u || "").trim().replace(/\/+$/, "");
+    }
+
+    function currentPageBase() {
+      const u = new URL(location.href);
+      u.pathname = u.pathname.replace(/\/+[^\/]*$/, "/");
+      u.search = "";
+      u.hash = "";
+      return u.toString().replace(/\/+$/, "/");
+    }
+
+    function buildOverlayUrl(cfg) {
+      const base = currentPageBase();
+      const u = new URL(base + "alerts.html");
+      if (cfg.apiBase) u.searchParams.set("api", cfg.apiBase);
+      if (cfg.pollMs) u.searchParams.set("poll", String(cfg.pollMs));
+      if (cfg.showMs) u.searchParams.set("show", String(cfg.showMs));
+      if (cfg.framePath) u.searchParams.set("frame", cfg.framePath);
+      if (cfg.titleText) u.searchParams.set("title", cfg.titleText);
+      if (cfg.effectMap) u.searchParams.set("map", btoa(unescape(encodeURIComponent(cfg.effectMap))));
+      return u.toString();
+    }
+
+    function setConnected(isOn, text) {
+      connDot.classList.toggle("on", !!isOn);
+      connText.textContent = text;
+    }
+
+    async function healthCheck(apiBase) {
+      if (!apiBase) {
+        healthEl.textContent = "No API base set.";
+        return;
+      }
+      try {
+        const res = await fetch(apiBase + "/latest", { method: "GET" });
+        const txt = await res.text();
+        healthEl.textContent = res.ok ? ("OK: " + txt.slice(0, 120)) : ("HTTP " + res.status + ": " + txt.slice(0, 120));
+      } catch (e) {
+        healthEl.textContent = "Failed: " + (e?.message || String(e));
+      }
+    }
+
+    function applyToForm(cfg) {
+      apiBaseEl.value = cfg.apiBase || "";
+      adminKeyEl.value = cfg.adminKey || "";
+      pollMsEl.value = cfg.pollMs ?? 1000;
+      showMsEl.value = cfg.showMs ?? 6500;
+      framePathEl.value = cfg.framePath || "assets/alert-frame.png";
+      titleTextEl.value = cfg.titleText || "⚖️ Balance Disturbed";
+      effectMapEl.value = cfg.effectMap || "";
+    }
+
+    function readFromForm() {
+      const apiBase = sanitizeBase(apiBaseEl.value);
+      const adminKey = adminKeyEl.value.trim();
+      const pollMs = Number(pollMsEl.value) || 1000;
+      const showMs = Number(showMsEl.value) || 6500;
+      const framePath = (framePathEl.value || "").trim() || "assets/alert-frame.png";
+      const titleText = (titleTextEl.value || "").trim();
+      const effectMap = (effectMapEl.value || "").trim();
+
+      if (effectMap) {
+        try { JSON.parse(effectMap); }
+        catch { throw new Error("Effect map must be valid JSON."); }
+      }
+
+      return { apiBase, adminKey, pollMs, showMs, framePath, titleText, effectMap };
+    }
+
+    saveBtn.onclick = async () => {
+      try {
+        const cfg = readFromForm();
+        saveCfg(cfg);
+        statusEl.innerHTML = `<span class="ok">Saved.</span> Settings are stored on this device/browser.`;
+        const overlayUrl = buildOverlayUrl(cfg);
+        overlayUrlEl.textContent = overlayUrl;
+        setConnected(!!cfg.apiBase, cfg.apiBase ? "Configured" : "Not configured");
+        await healthCheck(cfg.apiBase);
+      } catch (e) {
+        statusEl.innerHTML = `<span class="bad">Error:</span> ${e.message || e}`;
+      }
+    };
+
+    clearBtn.onclick = () => {
+      clearCfg();
+      statusEl.innerHTML = `<span class="warn">Cleared.</span> You’ll need to redo setup.`;
+      overlayUrlEl.textContent = "—";
+      healthEl.textContent = "—";
+      setConnected(false, "Not configured");
+      applyToForm({});
+    };
+
+    openOverlayBtn.onclick = () => {
+      try {
+        const cfg = readFromForm();
+        const url = buildOverlayUrl(cfg);
+        window.open(url, "_blank");
+      } catch (e) {
+        statusEl.innerHTML = `<span class="bad">Error:</span> ${e.message || e}`;
+      }
+    };
+
+    testBtn.onclick = async () => {
+      try {
+        const cfg = readFromForm();
+        if (!cfg.apiBase) throw new Error("Set Worker API Base first.");
+        if (!cfg.adminKey) throw new Error("Admin Key is required for /test.");
+        const payload = {
+          amount: Number(tAmountEl.value) || 4,
+          effect: tEffectEl.value || "Test Effect",
+          note: tNoteEl.value || ""
+        };
+        const res = await fetch(`${cfg.apiBase}/test?k=${encodeURIComponent(cfg.adminKey)}`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const txt = await res.text();
+        statusEl.innerHTML = res.ok
+          ? `<span class="ok">Test sent.</span> Overlay should pop within 1–2 seconds.`
+          : `<span class="bad">Test failed:</span> HTTP ${res.status} — ${txt}`;
+      } catch (e) {
+        statusEl.innerHTML = `<span class="bad">Error:</span> ${e.message || e}`;
+      }
+    };
+
+    (function init() {
+      const cfg = loadCfg() || {};
+      applyToForm(cfg);
+      if (cfg.apiBase) {
+        overlayUrlEl.textContent = buildOverlayUrl(cfg);
+        setConnected(true, "Configured");
+        healthCheck(cfg.apiBase);
+      } else {
+        setConnected(false, "Not configured");
+      }
+    })();
+  </script>
+</body>
+</html>
