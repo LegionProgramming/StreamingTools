@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    html, body { margin:0; padding:0; background:transparent; overflow:hidden; }
+    .wrap { position:relative; width:100vw; height:100vh; }
+    .alert {
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%) scale(0.98);
+      opacity:0;
+      transition:opacity .25s ease, transform .25s ease;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .alert.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    .frame { width:760px; max-width:95vw; height:auto; }
+    .text {
+      position:absolute; width:85%;
+      text-align:center;
+      font:700 36px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:#fff;
+      text-shadow:0 2px 10px rgba(0,0,0,.8);
+      padding:10px 18px;
+    }
+    .sub { display:block; font-weight:600; font-size:22px; opacity:.9; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="alert" class="alert">
+      <img id="frame" class="frame" src="assets/alert-frame.png" alt="frame">
+      <div class="text" id="text"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://YOUR-WORKER.yourdomain.workers.dev";
+    const alertEl = document.getElementById("alert");
+    const textEl  = document.getElementById("text");
+    let lastId = null;
+    let showing = false;
+
+    async function poll() {
+      try {
+        const res = await fetch(`${API_BASE}/latest`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || !data.id) return;
+        if (data.id === lastId) return;
+        lastId = data.id;
+
+        const main = `$${data.amount} — ${data.effect}`;
+        const sub = data.note ? `<span class="sub">${data.note}</span>` : "";
+        textEl.innerHTML = `${main}${sub}`;
+
+        if (!showing) {
+          showing = true;
+          alertEl.classList.add("show");
+          setTimeout(() => {
+            alertEl.classList.remove("show");
+            setTimeout(() => showing = false, 300);
+          }, 6500);
+        }
+      } catch {}
+    }
+
+    setInterval(poll, 1000);
+    poll();
+  </script>
+</body>
+</html>
